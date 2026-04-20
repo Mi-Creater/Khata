@@ -2,388 +2,716 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mobile Ledger Pro - Professional Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Pocket Ledger · Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
     <style>
-        :root { --primary: #2563eb; --success: #16a34a; --danger: #dc2626; --bg: #f1f5f9; --white: #ffffff; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; color: #333; }
-        .container { max-width: 500px; margin: auto; background: white; border-radius: 15px; min-height: 95vh; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 15px; }
-        
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
-        .header h2 { font-size: 18px; color: var(--primary); margin: 0; }
-        .header-btns { display: flex; gap: 8px; }
-        .icon-btn { background: #e2e8f0; border: none; padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-        .filter-box { background: #f8fafc; padding: 10px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
-        .filter-row { display: flex; gap: 5px; align-items: center; font-size: 12px; font-weight: bold; }
-        .filter-row input { flex: 1; padding: 5px; border-radius: 5px; border: 1px solid #cbd5e1; }
+        body {
+            background: #eef2f9;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif;
+            padding: 12px 10px 30px;
+            color: #0f172a;
+        }
 
-        .search-bar { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 10px; margin-bottom: 10px; box-sizing: border-box; outline: none; font-size: 14px; }
-        .btn-main { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
+        /* main container — card style */
+        .app-card {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.02);
+            overflow: hidden;
+            padding: 16px 14px 22px;
+        }
 
-        .task-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 12px; position: relative; }
-        .task-info h3 { margin: 0; font-size: 15px; color: #1e293b; display: inline-block; }
-        .timestamp { font-size: 10px; color: #94a3b8; float: right; margin-top: 3px; }
-        .task-desc { font-size: 12px; color: #64748b; margin: 5px 0 10px 0; }
-        
-        .task-meta { display: flex; justify-content: space-between; align-items: center; }
-        .balance-chip { padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 12px; }
-        
-        .badge { background: #dcfce7; color: #16a34a; font-size: 9px; padding: 2px 6px; border-radius: 5px; font-weight: bold; margin-left: 5px; }
+        /* filter row: inline & tight */
+        .filter-strip {
+            background: #f8fafd;
+            border-radius: 20px;
+            padding: 8px 12px;
+            margin-bottom: 16px;
+            border: 1px solid #e9edf2;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: space-between;
+        }
+        .date-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 2px 10px 2px 8px;
+            border-radius: 40px;
+            border: 1px solid #e2e8f0;
+            flex: 2;
+            min-width: 130px;
+        }
+        .date-group span {
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+        }
+        .date-group input {
+            border: none;
+            padding: 8px 0;
+            font-size: 12px;
+            background: transparent;
+            width: 100%;
+            font-family: monospace;
+            letter-spacing: 0.3px;
+        }
+        .date-group input:focus {
+            outline: none;
+        }
+        .btn-clear-filter {
+            background: #f1f5f9;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 32px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #1e293b;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .btn-clear-filter:active { background: #e2e8f0; }
 
-        .action-btns { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; border-top: 1px solid #f1f5f9; padding-top: 10px; }
-        .btn-sm { flex: 1; min-width: 65px; padding: 8px 4px; border-radius: 6px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; }
-        .btn-view { background: #eff6ff; color: var(--primary); }
-        .btn-edit { background: #fef9c3; color: #854d0e; }
-        .btn-del { background: #fee2e2; color: var(--danger); }
-        .btn-done { background: #dcfce7; color: var(--success); }
+        /* header + actions */
+        .flex-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 12px;
+        }
+        .logo {
+            font-weight: 700;
+            font-size: 18px;
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .nav-chip {
+            background: #f1f4f9;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.1s ease;
+            color: #1e293b;
+        }
+        .nav-chip:active { background: #e2e8f0; transform: scale(0.97); }
 
-        .st-header { background: #f8fafc; padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 15px; }
-        .tran-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-        .tran-table th { background: #f1f5f9; padding: 8px; text-align: left; }
-        .tran-table td { padding: 8px; border-bottom: 1px solid #eee; }
+        /* universal search */
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 44px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            font-size: 14px;
+            margin-bottom: 14px;
+            outline: none;
+            transition: 0.15s;
+        }
+        .search-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+        }
 
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
-        .modal-content { background: white; width: 100%; max-width: 350px; padding: 20px; border-radius: 15px; }
-        input, select, textarea { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        
-        .red { color: var(--danger); background: #fee2e2; }
-        .green { color: var(--success); background: #dcfce7; }
+        .btn-primary {
+            width: 100%;
+            background: #2563eb;
+            border: none;
+            padding: 12px;
+            border-radius: 44px;
+            font-weight: 600;
+            font-size: 15px;
+            color: white;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: 0.1s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .btn-primary:active { background: #1d4ed8; transform: scale(0.98); }
+
+        /* task card modern */
+        .task-card {
+            background: white;
+            border-radius: 20px;
+            padding: 14px;
+            margin-bottom: 12px;
+            border: 1px solid #edf2f7;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            transition: 0.1s;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 6px;
+        }
+        .task-title {
+            font-weight: 700;
+            font-size: 15px;
+            color: #0f172a;
+            max-width: 70%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .timestamp-small {
+            font-size: 9px;
+            color: #94a3b8;
+            background: #f8fafc;
+            padding: 2px 8px;
+            border-radius: 30px;
+        }
+        .task-desc {
+            font-size: 12px;
+            color: #475569;
+            margin: 6px 0 10px;
+            line-height: 1.35;
+        }
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .balance-badge {
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 13px;
+        }
+        .balance-badge.positive { background: #e0f2e9; color: #15803d; }
+        .balance-badge.negative { background: #fee9e6; color: #b91c1c; }
+        .entry-count {
+            font-size: 11px;
+            color: #64748b;
+        }
+        .action-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+            border-top: 1px solid #f0f2f5;
+            padding-top: 12px;
+        }
+        .action-btn {
+            flex: 1;
+            background: #f8fafc;
+            border: none;
+            border-radius: 30px;
+            padding: 8px 0;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.08s linear;
+        }
+        .action-btn:active { transform: scale(0.96); background: #eef2ff; }
+        .btn-view-st { background: #eff6ff; color: #1e40af; }
+        .btn-edit-st { background: #fffbeb; color: #b45309; }
+        .btn-done-st { background: #e6f7ec; color: #2b6e3c; }
+        .btn-del-st { background: #fff0f0; color: #c2412c; }
+
+        /* statement table */
+        .statement-header {
+            text-align: center;
+            margin-bottom: 14px;
+        }
+        .statement-name {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .compact-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .compact-table th {
+            background: #f1f5f9;
+            text-align: left;
+            padding: 10px 8px;
+            font-weight: 600;
+        }
+        .compact-table td {
+            padding: 9px 8px;
+            border-bottom: 1px solid #ecf3fa;
+        }
+        .green-text { color: #15803d; font-weight: 500; }
+        .red-text { color: #b91c1c; font-weight: 500; }
+        .share-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .share-btn {
+            flex: 1;
+            background: #25D366;
+            border: none;
+            padding: 10px;
+            border-radius: 40px;
+            font-weight: 600;
+            color: white;
+        }
+        .pdf-btn {
+            background: #1e293b;
+        }
+
+        /* modals */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(3px);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .modal-card {
+            background: white;
+            width: 100%;
+            max-width: 340px;
+            border-radius: 32px;
+            padding: 20px;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.2);
+        }
+        .modal-card input, .modal-card select, .modal-card textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 14px;
+            border-radius: 18px;
+            border: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+        .modal-card button {
+            margin-top: 4px;
+        }
+        .close-modal-btn {
+            background: #f1f5f9;
+            color: #334155;
+            margin-top: 8px;
+        }
+        .text-center { text-align: center; }
+        .mt-1 { margin-top: 4px; }
+
+        /* hide / show sections */
+        .section { display: block; }
+        .hidden-section { display: none; }
+        .back-link {
+            background: none;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            color: #2563eb;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 14px;
+            cursor: pointer;
+        }
+        hr {
+            margin: 8px 0;
+        }
     </style>
 </head>
 <body>
+<div class="app-card" id="appRoot">
+    <!-- universal filter row (always visible except statement) -->
+    <div id="globalFilterContainer">
+        <div class="filter-strip">
+            <div class="date-group"><span>📅</span><input type="date" id="filterFromDate" onchange="refreshCurrentView()"></div>
+            <div class="date-group"><span>📅</span><input type="date" id="filterToDate" onchange="refreshCurrentView()"></div>
+            <button class="btn-clear-filter" onclick="clearFiltersAndRefresh()">Clear</button>
+        </div>
+    </div>
 
-<div class="container">
-    <div id="dashboardSection">
-        <div class="header">
-            <h2>Ledger Pro</h2>
-            <div class="header-btns">
-                <button class="icon-btn" onclick="showHistory()">📜 Hist</button>
-                <button class="icon-btn" onclick="showTrash()">🗑️ Trash</button>
-                <button class="icon-btn" onclick="location.reload()">🔄</button>
+    <!-- DASHBOARD SECTION (active tasks) -->
+    <div id="dashboardView">
+        <div class="flex-header">
+            <div class="logo">📒 Pocket Ledger</div>
+            <div class="nav-buttons">
+                <button class="nav-chip" onclick="switchToHistory()">📜 History</button>
+                <button class="nav-chip" onclick="switchToTrash()">🗑️ Trash</button>
             </div>
         </div>
-
-        <div class="filter-box">
-            <div class="filter-row">
-                From: <input type="date" id="filterFrom" onchange="renderDashboard()">
-                To: <input type="date" id="filterTo" onchange="renderDashboard()">
-                <button onclick="clearFilters()" style="padding:4px; font-size:10px">Clear</button>
-            </div>
-        </div>
-        
-        <input type="text" id="searchInput" class="search-bar" placeholder="Search active tasks..." onkeyup="renderDashboard()">
-        <button class="btn-main" onclick="openTaskModal()">+ New Task</button>
-        <div id="taskList"></div>
+        <input type="text" id="dashboardSearch" class="search-input" placeholder="🔍 Search tasks..." oninput="renderDashboard()">
+        <button class="btn-primary" onclick="openCreateTaskModal()">+ New Task</button>
+        <div id="taskListContainer"></div>
     </div>
 
-    <div id="historySection" style="display:none">
-        <button onclick="closeHistory()" style="background:none; border:none; color:var(--primary); font-weight:bold; margin-bottom:10px; cursor:pointer">← Back</button>
-        <input type="text" id="searchHistory" class="search-bar" placeholder="Search history..." onkeyup="showHistory()">
-        <div id="historyList"></div>
+    <!-- HISTORY SECTION -->
+    <div id="historyView" class="hidden-section">
+        <button class="back-link" onclick="switchToDashboard()">← Back to home</button>
+        <input type="text" id="historySearch" class="search-input" placeholder="🔍 Search history..." oninput="renderHistory()">
+        <div id="historyListContainer"></div>
     </div>
 
-    <div id="trashSection" style="display:none">
-        <button onclick="closeTrash()" style="background:none; border:none; color:var(--primary); font-weight:bold; margin-bottom:10px; cursor:pointer">← Back</button>
-        <input type="text" id="searchTrash" class="search-bar" placeholder="Search trash..." onkeyup="showTrash()">
-        <div id="trashList"></div>
+    <!-- TRASH SECTION -->
+    <div id="trashView" class="hidden-section">
+        <button class="back-link" onclick="switchToDashboard()">← Back</button>
+        <input type="text" id="trashSearch" class="search-input" placeholder="🔍 Search trash..." oninput="renderTrash()">
+        <div id="trashListContainer"></div>
     </div>
 
-    <div id="statementSection" style="display:none">
-        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:15px;">
-            <button onclick="closeStatement()" style="background:none; border:none; color:var(--primary); font-weight:bold; cursor:pointer">← Back</button>
-            <button class="btn-sm green" id="addEntryBtn" style="flex:none; padding:8px 15px" onclick="openEntryModal()">+ Entry</button>
+    <!-- STATEMENT SECTION (entries view) -->
+    <div id="statementView" class="hidden-section">
+        <div class="flex-header" style="margin-bottom: 6px;">
+            <button class="back-link" onclick="closeStatementAndRefresh()">← Back</button>
+            <button id="addEntryStatementBtn" class="nav-chip" style="background:#2563eb; color:white;" onclick="openEntryModalForTask()">+ Entry</button>
         </div>
-        <div class="st-header">
-            <h3 id="stTaskName"></h3>
-            <p id="stTaskDesc"></p>
-            <div id="stFinalBalance" class="balance-chip"></div>
+        <div class="statement-header">
+            <div class="statement-name" id="statementTaskName"></div>
+            <div id="statementBalanceChip" class="balance-badge positive" style="display: inline-block; margin-top: 5px;"></div>
         </div>
-        <table class="tran-table">
-            <thead><tr><th>Date</th><th>Type</th><th>Amount</th></tr></thead>
-            <tbody id="stBody"></tbody>
-        </table>
-        <div style="display:flex; gap:10px; margin-top:20px;">
-            <button class="btn-main" style="background:#25d366" onclick="shareWhatsApp()">WhatsApp</button>
-            <button class="btn-main" style="background:#000" onclick="downloadPDF()">PDF</button>
+        <div style="overflow-x: auto;">
+            <table class="compact-table">
+                <thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Note</th></tr></thead>
+                <tbody id="statementTableBody"></tbody>
+            </table>
+        </div>
+        <div class="share-row">
+            <button class="share-btn" onclick="shareViaWhatsApp()">📱 WhatsApp</button>
+            <button class="share-btn pdf-btn" onclick="exportStatementPDF()">📄 PDF</button>
         </div>
     </div>
 </div>
 
-<div id="taskModal" class="modal">
-    <div class="modal-content">
-        <h3 id="taskModalTitle">New Task</h3>
-        <input type="hidden" id="editTaskId">
-        <input type="hidden" id="editSource">
-        <input type="text" id="tName" placeholder="Task Name">
-        <textarea id="tDesc" placeholder="Description"></textarea>
-        <button class="btn-main" onclick="saveTask()">Save Task</button>
-        <button class="btn-main" style="background:#eee; color:#333" onclick="closeModal()">Cancel</button>
-    </div>
-</div>
+<!-- MODALS -->
+<div id="taskModal" class="modal-overlay"><div class="modal-card"><h3 style="margin-bottom: 12px; font-size: 18px;" id="taskModalTitle">New Task</h3><input type="hidden" id="editTaskId"><input type="hidden" id="editSourceType"><input type="text" id="taskNameInput" placeholder="Task name *"><textarea id="taskDescInput" rows="2" placeholder="Description (optional)"></textarea><button class="btn-primary" onclick="saveTaskHandler()">Save</button><button class="btn-primary close-modal-btn" onclick="closeModal('taskModal')">Cancel</button></div></div>
 
-<div id="entryModal" class="modal">
-    <div class="modal-content">
-        <h3>Add New Entry</h3>
-        <select id="eType">
-            <option value="Received">Received Money</option>
-            <option value="Paid">Paid Money</option>
-        </select>
-        <input type="number" id="eAmount" placeholder="Amount">
-        <input type="date" id="eDate">
-        <textarea id="eNote" placeholder="Note"></textarea>
-        <button class="btn-main" style="background:var(--success)" onclick="saveEntry()">Save Entry</button>
-        <button class="btn-main" style="background:#eee; color:#333" onclick="closeModal()">Cancel</button>
-    </div>
-</div>
+<div id="entryModal" class="modal-overlay"><div class="modal-card"><h3 style="margin-bottom: 12px;">Add Transaction</h3><select id="entryType"><option value="Received">💰 Received</option><option value="Paid">💸 Paid</option></select><input type="number" id="entryAmount" placeholder="Amount (AED)"><input type="date" id="entryDate"><textarea id="entryNote" rows="2" placeholder="Note (optional)"></textarea><button class="btn-primary" style="background:#16a34a;" onclick="saveEntryHandler()">Add Entry</button><button class="btn-primary close-modal-btn" onclick="closeModal('entryModal')">Cancel</button></div></div>
 
 <script>
-    const { jsPDF } = window.jspdf;
+    // ---------- STORAGE KEYS ----------
     let tasks = JSON.parse(localStorage.getItem('plp_tasks')) || [];
     let history = JSON.parse(localStorage.getItem('plp_history')) || [];
     let trash = JSON.parse(localStorage.getItem('plp_trash')) || [];
-    let activeTaskId = null;
-    let activeSource = 'tasks';
 
-    function getNow() {
+    // UI state
+    let currentActiveTab = "dashboard"; // dashboard, history, trash
+    let currentStatement = { taskId: null, source: null }; // source: "tasks" or "history"
+
+    // helper: timestamp
+    function getFormattedTimestamp() {
         const d = new Date();
         return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
-
-    function renderDashboard() {
-        const list = document.getElementById('taskList');
-        const query = document.getElementById('searchInput').value.toLowerCase();
-        const from = document.getElementById('filterFrom').value;
-        const to = document.getElementById('filterTo').value;
-        
-        list.innerHTML = "";
-        tasks.forEach((task, index) => {
-            const taskDate = task.created.split(',')[0]; // Simple date match
-            const matchesFilter = (!from || task.createdIso >= from) && (!to || task.createdIso <= to);
-            
-            if (task.name.toLowerCase().includes(query) && matchesFilter) {
-                const bal = calculateBalance(task.entries);
-                const isZero = bal === 0 && task.entries.length > 0;
-                list.innerHTML += `
-                    <div class="task-card">
-                        <span class="timestamp">${task.created}</span>
-                        <div class="task-info">
-                            <h3>${task.name}</h3>
-                            ${isZero ? '<span class="badge">DONE</span>' : ''}
-                        </div>
-                        <div class="task-desc">${task.desc}</div>
-                        <div class="task-meta">
-                            <span class="balance-chip ${bal >= 0 ? 'green' : 'red'}">${bal} AED</span>
-                            <span style="font-size:11px; color:#999">${task.entries.length} Entries</span>
-                        </div>
-                        <div class="action-btns">
-                            <button class="btn-sm btn-view" onclick="viewTask(${index}, 'tasks')">View</button>
-                            <button class="btn-sm btn-edit" onclick="editTask(${index}, 'tasks')">Edit</button>
-                            <button class="btn-sm btn-done" onclick="completeTask(${index})">Finish</button>
-                            <button class="btn-sm btn-del" onclick="deleteTask(${index}, 'tasks')">Delete</button>
-                        </div>
-                    </div>`;
-            }
-        });
+    function getIsoDate() {
+        return new Date().toISOString().split('T')[0];
     }
 
-    function calculateBalance(entries) {
-        return entries.reduce((acc, curr) => acc + (curr.type === "Received" ? 1 : -1) * parseFloat(curr.amount), 0);
-    }
-
-    function saveTask() {
-        const name = document.getElementById('tName').value.trim();
-        const desc = document.getElementById('tDesc').value.trim();
-        const editId = document.getElementById('editTaskId').value;
-        const source = document.getElementById('editSource').value;
-        if (!name) return alert("Name required");
-        
-        if (editId !== "") {
-            let targetArr = (source === 'history') ? history : tasks;
-            targetArr[editId].name = name;
-            targetArr[editId].desc = desc;
-        } else {
-            const now = new Date();
-            tasks.push({ 
-                name, desc, entries: [], 
-                created: getNow(),
-                createdIso: now.toISOString().split('T')[0]
-            });
+    // balance calculation
+    function calcBalance(entries) {
+        let bal = 0;
+        for(let e of entries) {
+            let amt = parseFloat(e.amount);
+            if(e.type === "Received") bal += amt;
+            else bal -= amt;
         }
-        saveToLocalStorage();
-        closeModal();
-        source === 'history' ? showHistory() : renderDashboard();
+        return bal;
     }
 
-    function completeTask(index) {
-        if(confirm("Mark as Completed?")) {
-            tasks[index].completedAt = getNow();
-            history.push(tasks[index]);
-            tasks.splice(index, 1);
-            saveToLocalStorage();
-            renderDashboard();
-        }
-    }
-
-    function showHistory() {
-        document.getElementById('dashboardSection').style.display = 'none';
-        document.getElementById('historySection').style.display = 'block';
-        const list = document.getElementById('historyList');
-        const query = document.getElementById('searchHistory').value.toLowerCase();
-        list.innerHTML = "";
-        history.forEach((item, index) => {
-            if(item.name.toLowerCase().includes(query)) {
-                list.innerHTML += `
-                <div class="task-card" style="border-left: 4px solid var(--success)">
-                    <span class="timestamp">Ended: ${item.completedAt}</span>
-                    <h3>${item.name}</h3>
-                    <div class="action-btns">
-                        <button class="btn-sm btn-view" onclick="viewTask(${index}, 'history')">Statement</button>
-                        <button class="btn-sm btn-edit" onclick="editTask(${index}, 'history')">Edit</button>
-                        <button class="btn-sm btn-view" style="background:#e0e7ff" onclick="restoreFromHistory(${index})">Restore</button>
-                        <button class="btn-sm btn-del" onclick="deleteTask(${index}, 'history')">Delete</button>
-                    </div>
-                </div>`;
-            }
-        });
-    }
-
-    function deleteTask(index, source) {
-        if(confirm("Move to Trash?")) {
-            let targetArr = (source === 'history') ? history : tasks;
-            targetArr[index].deletedAt = getNow();
-            trash.push(targetArr[index]);
-            targetArr.splice(index, 1);
-            saveToLocalStorage();
-            source === 'history' ? showHistory() : renderDashboard();
-        }
-    }
-
-    function showTrash() {
-        document.getElementById('dashboardSection').style.display = 'none';
-        document.getElementById('trashSection').style.display = 'block';
-        const list = document.getElementById('trashList');
-        const query = document.getElementById('searchTrash').value.toLowerCase();
-        list.innerHTML = "";
-        trash.forEach((item, index) => {
-            if(item.name.toLowerCase().includes(query)) {
-                list.innerHTML += `
-                <div class="task-card">
-                    <span class="timestamp">Deleted: ${item.deletedAt}</span>
-                    <h3>${item.name}</h3>
-                    <button class="btn-main" style="background:var(--success); margin-top:10px" onclick="restoreTask(${index})">Restore</button>
-                </div>`;
-            }
-        });
-    }
-
-    function viewTask(index, source) {
-        activeTaskId = index; activeSource = source;
-        const task = (source === 'history') ? history[index] : tasks[index];
-        document.getElementById('dashboardSection').style.display = 'none';
-        document.getElementById('historySection').style.display = 'none';
-        document.getElementById('statementSection').style.display = 'block';
-        document.getElementById('stTaskName').innerText = task.name;
-        document.getElementById('stTaskDesc').innerText = task.desc;
-        document.getElementById('addEntryBtn').style.display = (source === 'history') ? 'none' : 'block';
-        renderEntries();
-    }
-
-    function renderEntries() {
-        const body = document.getElementById('stBody');
-        const task = (activeSource === 'history') ? history[activeTaskId] : tasks[activeTaskId];
-        body.innerHTML = "";
-        task.entries.forEach(e => {
-            body.innerHTML += `<tr><td>${e.date}</td><td class="${e.type === 'Paid' ? 'red' : 'green'}" style="font-weight:bold">${e.type}</td><td>${e.amount} AED<br><small>${e.note}</small></td></tr>`;
-        });
-        const bal = calculateBalance(task.entries);
-        const balEl = document.getElementById('stFinalBalance');
-        balEl.innerText = `Balance: ${bal} AED`;
-        balEl.className = `balance-chip ${bal >= 0 ? 'green' : 'red'}`;
-    }
-
-    function clearFilters() {
-        document.getElementById('filterFrom').value = "";
-        document.getElementById('filterTo').value = "";
-        renderDashboard();
-    }
-
-    function saveEntry() {
-        const amount = document.getElementById('eAmount').value;
-        const date = document.getElementById('eDate').value;
-        if (!amount || !date) return alert("Fill data");
-        tasks[activeTaskId].entries.push({ 
-            type: document.getElementById('eType').value, 
-            amount, date, 
-            note: document.getElementById('eNote').value || "-" 
-        });
-        saveToLocalStorage(); closeModal(); renderEntries();
-    }
-
-    function restoreTask(index) {
-        tasks.push(trash[index]); trash.splice(index, 1);
-        saveToLocalStorage(); showTrash();
-    }
-
-    function restoreFromHistory(index) {
-        tasks.push(history[index]); history.splice(index, 1);
-        saveToLocalStorage(); showHistory();
-    }
-
-    function saveToLocalStorage() {
+    // persist all
+    function persistAll() {
         localStorage.setItem('plp_tasks', JSON.stringify(tasks));
         localStorage.setItem('plp_history', JSON.stringify(history));
         localStorage.setItem('plp_trash', JSON.stringify(trash));
     }
 
-    function editTask(index, source) {
-        let item = (source === 'history') ? history[index] : tasks[index];
+    // filter utils (date range)
+    function applyDateFilter(item, fromDate, toDate) {
+        const itemDate = item.createdIso || (item.createdIso = new Date().toISOString().split('T')[0]);
+        if(fromDate && itemDate < fromDate) return false;
+        if(toDate && itemDate > toDate) return false;
+        return true;
+    }
+
+    function getFilterDates() {
+        return {
+            from: document.getElementById('filterFromDate')?.value || "",
+            to: document.getElementById('filterToDate')?.value || ""
+        };
+    }
+
+    // ---------- RENDER DASHBOARD (active tasks) ----------
+    function renderDashboard() {
+        const searchVal = document.getElementById('dashboardSearch')?.value.toLowerCase() || "";
+        const { from, to } = getFilterDates();
+        const container = document.getElementById('taskListContainer');
+        if(!container) return;
+        let filtered = tasks.filter(t => {
+            const matchSearch = t.name.toLowerCase().includes(searchVal);
+            const matchDate = applyDateFilter(t, from, to);
+            return matchSearch && matchDate;
+        });
+        if(filtered.length === 0) {
+            container.innerHTML = `<div style="text-align:center; padding:32px; color:#94a3b8;">✨ No active tasks</div>`;
+            return;
+        }
+        container.innerHTML = filtered.map((task, idx) => {
+            const originalIdx = tasks.indexOf(task);
+            const bal = calcBalance(task.entries);
+            const balanceClass = bal >= 0 ? 'positive' : 'negative';
+            const balanceSign = bal >= 0 ? `+${bal}` : `${bal}`;
+            const doneBadge = (bal === 0 && task.entries.length > 0) ? '<span style="background:#dcfce7; color:#15803d; font-size:9px; padding:2px 8px; border-radius:30px; margin-left:8px;">✓ DONE</span>' : '';
+            return `
+                <div class="task-card">
+                    <div class="card-header"><div class="task-title">${escapeHtml(task.name)} ${doneBadge}</div><div class="timestamp-small">${task.created || ''}</div></div>
+                    <div class="task-desc">${escapeHtml(task.desc) || '—'}</div>
+                    <div class="meta-row"><span class="balance-badge ${balanceClass}">${balanceSign} AED</span><span class="entry-count">📋 ${task.entries.length} entries</span></div>
+                    <div class="action-row">
+                        <button class="action-btn btn-view-st" onclick="openStatement('${originalIdx}', 'tasks')">Statement</button>
+                        <button class="action-btn btn-edit-st" onclick="editTaskModal('${originalIdx}', 'tasks')">Edit</button>
+                        <button class="action-btn btn-done-st" onclick="completeTaskToHistory('${originalIdx}')">Finish</button>
+                        <button class="action-btn btn-del-st" onclick="moveToTrash('${originalIdx}', 'tasks')">Delete</button>
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    // HISTORY render
+    function renderHistory() {
+        const search = document.getElementById('historySearch')?.value.toLowerCase() || "";
+        const { from, to } = getFilterDates();
+        const container = document.getElementById('historyListContainer');
+        let filtered = history.filter(h => h.name.toLowerCase().includes(search) && applyDateFilter(h, from, to));
+        container.innerHTML = filtered.map((item, idx) => {
+            const originalIdx = history.indexOf(item);
+            return `<div class="task-card"><div class="card-header"><div class="task-title">📌 ${escapeHtml(item.name)}</div><div class="timestamp-small">✔️ ${item.completedAt || ''}</div></div><div class="action-row"><button class="action-btn btn-view-st" onclick="openStatement('${originalIdx}', 'history')">Statement</button><button class="action-btn btn-edit-st" onclick="editTaskModal('${originalIdx}', 'history')">Edit</button><button class="action-btn btn-done-st" style="background:#e6f0ff;" onclick="restoreFromHistoryToTasks('${originalIdx}')">Restore</button><button class="action-btn btn-del-st" onclick="moveToTrash('${originalIdx}', 'history')">Delete</button></div></div>`;
+        }).join('');
+        if(filtered.length===0) container.innerHTML = `<div style="padding:32px; text-align:center;">📭 No history entries</div>`;
+    }
+
+    // TRASH render
+    function renderTrash() {
+        const search = document.getElementById('trashSearch')?.value.toLowerCase() || "";
+        const container = document.getElementById('trashListContainer');
+        let filtered = trash.filter(t => t.name.toLowerCase().includes(search));
+        container.innerHTML = filtered.map((item, idx) => {
+            const originalIdx = trash.indexOf(item);
+            return `<div class="task-card"><div class="card-header"><div class="task-title">🗑️ ${escapeHtml(item.name)}</div><div class="timestamp-small">deleted: ${item.deletedAt || ''}</div></div><div class="action-row"><button class="action-btn btn-done-st" onclick="restoreFromTrash('${originalIdx}')">Restore</button></div></div>`;
+        }).join('');
+        if(filtered.length===0) container.innerHTML = `<div style="padding:32px; text-align:center;">🗑️ Trash is empty</div>`;
+    }
+
+    // statement logic
+    function openStatement(id, source) {
+        currentStatement = { taskId: parseInt(id), source: source };
+        const taskObj = source === 'tasks' ? tasks[id] : history[id];
+        if(!taskObj) return;
+        document.getElementById('statementTaskName').innerText = taskObj.name;
+        const addBtn = document.getElementById('addEntryStatementBtn');
+        if(addBtn) addBtn.style.display = source === 'tasks' ? 'flex' : 'none';
+        renderStatementEntries();
+        // hide other views
+        document.getElementById('dashboardView').classList.add('hidden-section');
+        document.getElementById('historyView').classList.add('hidden-section');
+        document.getElementById('trashView').classList.add('hidden-section');
+        document.getElementById('globalFilterContainer').style.display = 'none';
+        document.getElementById('statementView').classList.remove('hidden-section');
+    }
+
+    function renderStatementEntries() {
+        const taskObj = currentStatement.source === 'tasks' ? tasks[currentStatement.taskId] : history[currentStatement.taskId];
+        if(!taskObj) return;
+        const tbody = document.getElementById('statementTableBody');
+        const balance = calcBalance(taskObj.entries);
+        const balSpan = document.getElementById('statementBalanceChip');
+        balSpan.innerText = `${balance} AED`;
+        balSpan.className = `balance-badge ${balance >= 0 ? 'positive' : 'negative'}`;
+        tbody.innerHTML = '';
+        taskObj.entries.forEach(e => {
+            const row = `<tr><td>${e.date || '-'}</td><td class="${e.type === 'Paid' ? 'red-text' : 'green-text'}">${e.type}</td><td>${parseFloat(e.amount).toFixed(2)} AED</td><td><small>${escapeHtml(e.note || '-')}</small></td></tr>`;
+            tbody.innerHTML += row;
+        });
+        if(taskObj.entries.length === 0) tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No transactions</td></tr>';
+    }
+
+    function saveEntryHandler() {
+        if(currentStatement.source !== 'tasks') { alert("Cannot edit finished tasks"); closeModal('entryModal'); return; }
+        const amount = document.getElementById('entryAmount').value;
+        const date = document.getElementById('entryDate').value;
+        if(!amount || !date) { alert("Amount and date required"); return; }
+        const type = document.getElementById('entryType').value;
+        const note = document.getElementById('entryNote').value || "-";
+        tasks[currentStatement.taskId].entries.push({ type, amount: parseFloat(amount), date, note });
+        persistAll();
+        renderStatementEntries();
+        closeModal('entryModal');
+        renderDashboard(); // keep dashboard sync
+    }
+
+    function completeTaskToHistory(index) {
+        if(confirm("Mark as completed & move to history?")) {
+            tasks[index].completedAt = getFormattedTimestamp();
+            tasks[index].createdIso = tasks[index].createdIso || getIsoDate();
+            history.push({ ...tasks[index] });
+            tasks.splice(index,1);
+            persistAll();
+            renderDashboard();
+        }
+    }
+
+    function moveToTrash(index, source) {
+        if(confirm("Move to trash?")) {
+            let targetArr = source === 'tasks' ? tasks : history;
+            let item = targetArr[index];
+            item.deletedAt = getFormattedTimestamp();
+            trash.push(item);
+            targetArr.splice(index,1);
+            persistAll();
+            if(source === 'tasks') renderDashboard();
+            else renderHistory();
+        }
+    }
+
+    function restoreFromHistoryToTasks(index) {
+        tasks.push({ ...history[index] });
+        history.splice(index,1);
+        persistAll();
+        renderHistory();
+        renderDashboard();
+    }
+
+    function restoreFromTrash(index) {
+        tasks.push({ ...trash[index] });
+        trash.splice(index,1);
+        persistAll();
+        renderTrash();
+        renderDashboard();
+    }
+
+    function editTaskModal(index, source) {
+        let item = source === 'tasks' ? tasks[index] : history[index];
         document.getElementById('taskModalTitle').innerText = "Edit Task";
         document.getElementById('editTaskId').value = index;
-        document.getElementById('editSource').value = source;
-        document.getElementById('tName').value = item.name;
-        document.getElementById('tDesc').value = item.desc;
+        document.getElementById('editSourceType').value = source;
+        document.getElementById('taskNameInput').value = item.name;
+        document.getElementById('taskDescInput').value = item.desc || '';
         document.getElementById('taskModal').style.display = 'flex';
     }
 
-    function openTaskModal() {
+    function saveTaskHandler() {
+        const name = document.getElementById('taskNameInput').value.trim();
+        if(!name) return alert("Task name required");
+        const desc = document.getElementById('taskDescInput').value.trim();
+        const editId = document.getElementById('editTaskId').value;
+        const source = document.getElementById('editSourceType').value;
+        if(editId !== "") {
+            let target = source === 'tasks' ? tasks : history;
+            target[editId].name = name;
+            target[editId].desc = desc;
+            persistAll();
+            closeModal('taskModal');
+            if(source === 'tasks') renderDashboard(); else renderHistory();
+        } else {
+            const newTask = { name, desc, entries: [], created: getFormattedTimestamp(), createdIso: getIsoDate() };
+            tasks.push(newTask);
+            persistAll();
+            closeModal('taskModal');
+            renderDashboard();
+        }
+    }
+
+    function openCreateTaskModal() {
         document.getElementById('taskModalTitle').innerText = "New Task";
         document.getElementById('editTaskId').value = "";
-        document.getElementById('editSource').value = "tasks";
-        document.getElementById('tName').value = "";
-        document.getElementById('tDesc').value = "";
+        document.getElementById('taskNameInput').value = "";
+        document.getElementById('taskDescInput').value = "";
         document.getElementById('taskModal').style.display = 'flex';
     }
-
-    function openEntryModal() {
-        document.getElementById('eDate').value = new Date().toISOString().split('T')[0];
+    function openEntryModalForTask() {
+        if(currentStatement.source !== 'tasks') return;
+        document.getElementById('entryDate').value = getIsoDate();
+        document.getElementById('entryAmount').value = '';
+        document.getElementById('entryNote').value = '';
         document.getElementById('entryModal').style.display = 'flex';
     }
 
-    function closeModal() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
-    function closeStatement() { document.getElementById('statementSection').style.display = 'none'; closeHistory(); }
-    function closeHistory() { document.getElementById('historySection').style.display = 'none'; document.getElementById('dashboardSection').style.display = 'block'; renderDashboard(); }
-    function closeTrash() { document.getElementById('trashSection').style.display = 'none'; document.getElementById('dashboardSection').style.display = 'block'; renderDashboard(); }
-
-    function downloadPDF() {
-        const doc = new jsPDF();
-        const task = (activeSource === 'history') ? history[activeTaskId] : tasks[activeTaskId];
-        doc.text(`Statement: ${task.name}`, 14, 20);
-        const rows = task.entries.map(e => [e.date, e.type, `${e.amount} AED`, e.note]);
-        doc.autoTable({ head: [['Date', 'Type', 'Amount', 'Note']], body: rows, startY: 30 });
-        doc.save(`${task.name}.pdf`);
+    // PDF & WhatsApp
+    function exportStatementPDF() {
+        const task = currentStatement.source === 'tasks' ? tasks[currentStatement.taskId] : history[currentStatement.taskId];
+        if(!task) return;
+        const doc = new jspdf.jsPDF();
+        doc.setFontSize(14);
+        doc.text(`Ledger: ${task.name}`, 14, 18);
+        const rows = task.entries.map(e => [e.date, e.type, `${e.amount} AED`, e.note || '-' ]);
+        doc.autoTable({ head: [['Date','Type','Amount','Note']], body: rows, startY: 28, theme: 'striped' });
+        doc.save(`${task.name.replace(/\s/g, '_')}.pdf`);
+    }
+    function shareViaWhatsApp() {
+        const task = currentStatement.source === 'tasks' ? tasks[currentStatement.taskId] : history[currentStatement.taskId];
+        let msg = `📋 *${task.name}*\nBalance: ${calcBalance(task.entries)} AED\n`;
+        task.entries.forEach(e => { msg += `${e.date} | ${e.type} ${e.amount} AED\n`; });
+        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank');
     }
 
-    function shareWhatsApp() {
-        const task = (activeSource === 'history') ? history[activeTaskId] : tasks[activeTaskId];
-        let text = `*Statement: ${task.name}*\nBalance: ${calculateBalance(task.entries)} AED\n\n`;
-        task.entries.forEach(e => { text += `📅 ${e.date} | ${e.type === 'Paid' ? '🔴' : '🟢'} ${e.amount} AED\n`; });
-        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    function closeStatementAndRefresh() {
+        document.getElementById('statementView').classList.add('hidden-section');
+        document.getElementById('globalFilterContainer').style.display = 'flex';
+        if(currentStatement.source === 'tasks') { switchToDashboard(); renderDashboard(); }
+        else { switchToHistory(); renderHistory(); }
+        currentStatement = { taskId: null, source: null };
     }
 
-    renderDashboard();
+    function switchToDashboard() { showOnly('dashboard'); renderDashboard(); }
+    function switchToHistory() { showOnly('history'); renderHistory(); }
+    function switchToTrash() { showOnly('trash'); renderTrash(); }
+    function showOnly(view) {
+        document.getElementById('dashboardView').classList.add('hidden-section');
+        document.getElementById('historyView').classList.add('hidden-section');
+        document.getElementById('trashView').classList.add('hidden-section');
+        document.getElementById('statementView').classList.add('hidden-section');
+        document.getElementById('globalFilterContainer').style.display = 'flex';
+        if(view === 'dashboard') document.getElementById('dashboardView').classList.remove('hidden-section');
+        if(view === 'history') document.getElementById('historyView').classList.remove('hidden-section');
+        if(view === 'trash') document.getElementById('trashView').classList.remove('hidden-section');
+        currentActiveTab = view;
+    }
+
+    function refreshCurrentView() {
+        if(currentActiveTab === 'dashboard') renderDashboard();
+        else if(currentActiveTab === 'history') renderHistory();
+        else if(currentActiveTab === 'trash') renderTrash();
+    }
+    function clearFiltersAndRefresh() {
+        document.getElementById('filterFromDate').value = "";
+        document.getElementById('filterToDate').value = "";
+        refreshCurrentView();
+    }
+    function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+
+    // initial render
+    window.onload = () => {
+        renderDashboard();
+        document.querySelectorAll('.modal-overlay').forEach(m => { m.addEventListener('click', (e) => { if(e.target === m) m.style.display = 'none'; }); });
+    };
 </script>
 </body>
 </html>
