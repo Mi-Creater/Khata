@@ -3,47 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mobile Ledger Pro - Task Manager</title>
+    <title>Mobile Ledger Pro - Professional Edition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
     <style>
         :root { --primary: #2563eb; --success: #16a34a; --danger: #dc2626; --bg: #f1f5f9; --white: #ffffff; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 10px; color: #333; }
-        .container { max-width: 500px; margin: auto; background: white; border-radius: 15px; min-height: 95vh; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 15px; position: relative; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; color: #333; }
+        .container { max-width: 500px; margin: auto; background: white; border-radius: 15px; min-height: 95vh; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 15px; }
         
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
         .header h2 { font-size: 18px; color: var(--primary); margin: 0; }
-        .header-btns { display: flex; gap: 10px; }
-        .icon-btn { background: #e2e8f0; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 16px; transition: 0.3s; }
-        .icon-btn:hover { background: #cbd5e1; }
+        .header-btns { display: flex; gap: 8px; }
+        .icon-btn { background: #e2e8f0; border: none; padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 14px; }
 
-        .search-bar { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 10px; margin-bottom: 15px; box-sizing: border-box; outline: none; }
+        .filter-box { background: #f8fafc; padding: 10px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
+        .filter-row { display: flex; gap: 5px; align-items: center; font-size: 12px; font-weight: bold; }
+        .filter-row input { flex: 1; padding: 5px; border-radius: 5px; border: 1px solid #cbd5e1; }
+
+        .search-bar { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 10px; margin-bottom: 10px; box-sizing: border-box; outline: none; font-size: 14px; }
         .btn-main { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
 
-        /* Task Card */
-        .task-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .task-info h3 { margin: 0 0 5px 0; font-size: 16px; color: #1e293b; }
-        .task-desc { font-size: 12px; color: #64748b; margin-bottom: 10px; }
-        .task-meta { display: flex; justify-content: space-between; align-items: center; }
-        .balance-chip { padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 13px; }
+        .task-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 12px; position: relative; }
+        .task-info h3 { margin: 0; font-size: 15px; color: #1e293b; display: inline-block; }
+        .timestamp { font-size: 10px; color: #94a3b8; float: right; margin-top: 3px; }
+        .task-desc { font-size: 12px; color: #64748b; margin: 5px 0 10px 0; }
         
-        .action-btns { display: flex; gap: 5px; margin-top: 10px; border-top: 1px solid #f1f5f9; padding-top: 10px; }
-        .btn-sm { flex: 1; padding: 8px; border-radius: 6px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .task-meta { display: flex; justify-content: space-between; align-items: center; }
+        .balance-chip { padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 12px; }
+        
+        .badge { background: #dcfce7; color: #16a34a; font-size: 9px; padding: 2px 6px; border-radius: 5px; font-weight: bold; margin-left: 5px; }
+
+        .action-btns { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; border-top: 1px solid #f1f5f9; padding-top: 10px; }
+        .btn-sm { flex: 1; min-width: 65px; padding: 8px 4px; border-radius: 6px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; }
         .btn-view { background: #eff6ff; color: var(--primary); }
         .btn-edit { background: #fef9c3; color: #854d0e; }
         .btn-del { background: #fee2e2; color: var(--danger); }
+        .btn-done { background: #dcfce7; color: var(--success); }
 
-        /* Statement Styles */
         .st-header { background: #f8fafc; padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 15px; }
-        .st-header h3 { margin: 0; color: #1e293b; }
-        .tran-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
-        .tran-table th { background: #f1f5f9; padding: 10px; text-align: left; }
-        .tran-table td { padding: 10px; border-bottom: 1px solid #eee; }
+        .tran-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .tran-table th { background: #f1f5f9; padding: 8px; text-align: left; }
+        .tran-table td { padding: 8px; border-bottom: 1px solid #eee; }
 
-        /* Modal */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
         .modal-content { background: white; width: 100%; max-width: 350px; padding: 20px; border-radius: 15px; }
-        .modal-content h3 { margin-top: 0; margin-bottom: 15px; }
         input, select, textarea { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         
         .red { color: var(--danger); background: #fee2e2; }
@@ -55,46 +58,57 @@
 <div class="container">
     <div id="dashboardSection">
         <div class="header">
-            <h2>Personal Ledger Pro</h2>
+            <h2>Ledger Pro</h2>
             <div class="header-btns">
-                <button class="icon-btn" onclick="location.reload()">🔄</button>
+                <button class="icon-btn" onclick="showHistory()">📜 Hist</button>
                 <button class="icon-btn" onclick="showTrash()">🗑️ Trash</button>
+                <button class="icon-btn" onclick="location.reload()">🔄</button>
+            </div>
+        </div>
+
+        <div class="filter-box">
+            <div class="filter-row">
+                From: <input type="date" id="filterFrom" onchange="renderDashboard()">
+                To: <input type="date" id="filterTo" onchange="renderDashboard()">
+                <button onclick="clearFilters()" style="padding:4px; font-size:10px">Clear</button>
             </div>
         </div>
         
-        <input type="text" id="searchInput" class="search-bar" placeholder="Search tasks..." onkeyup="renderDashboard()">
+        <input type="text" id="searchInput" class="search-bar" placeholder="Search active tasks..." onkeyup="renderDashboard()">
         <button class="btn-main" onclick="openTaskModal()">+ New Task</button>
         <div id="taskList"></div>
+    </div>
+
+    <div id="historySection" style="display:none">
+        <button onclick="closeHistory()" style="background:none; border:none; color:var(--primary); font-weight:bold; margin-bottom:10px; cursor:pointer">← Back</button>
+        <input type="text" id="searchHistory" class="search-bar" placeholder="Search history..." onkeyup="showHistory()">
+        <div id="historyList"></div>
+    </div>
+
+    <div id="trashSection" style="display:none">
+        <button onclick="closeTrash()" style="background:none; border:none; color:var(--primary); font-weight:bold; margin-bottom:10px; cursor:pointer">← Back</button>
+        <input type="text" id="searchTrash" class="search-bar" placeholder="Search trash..." onkeyup="showTrash()">
+        <div id="trashList"></div>
     </div>
 
     <div id="statementSection" style="display:none">
         <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:15px;">
             <button onclick="closeStatement()" style="background:none; border:none; color:var(--primary); font-weight:bold; cursor:pointer">← Back</button>
-            <button class="btn-sm green" style="flex:none; padding:8px 15px" onclick="openEntryModal()">+ Add Entry</button>
+            <button class="btn-sm green" id="addEntryBtn" style="flex:none; padding:8px 15px" onclick="openEntryModal()">+ Entry</button>
         </div>
-
         <div class="st-header">
-            <h3 id="stTaskName">Task Name</h3>
-            <p id="stTaskDesc" style="font-size:12px; color:#666"></p>
-            <div id="stFinalBalance" class="balance-chip">Balance: 0 AED</div>
+            <h3 id="stTaskName"></h3>
+            <p id="stTaskDesc"></p>
+            <div id="stFinalBalance" class="balance-chip"></div>
         </div>
-
         <table class="tran-table">
-            <thead>
-                <tr><th>Date</th><th>Type</th><th>Amount</th></tr>
-            </thead>
+            <thead><tr><th>Date</th><th>Type</th><th>Amount</th></tr></thead>
             <tbody id="stBody"></tbody>
         </table>
-
         <div style="display:flex; gap:10px; margin-top:20px;">
-            <button class="btn-main" style="background:#25d366" onclick="shareWhatsApp()">WhatsApp PDF</button>
+            <button class="btn-main" style="background:#25d366" onclick="shareWhatsApp()">WhatsApp</button>
             <button class="btn-main" style="background:#000" onclick="downloadPDF()">PDF</button>
         </div>
-    </div>
-
-    <div id="trashSection" style="display:none">
-        <button onclick="closeTrash()" style="background:none; border:none; color:var(--primary); font-weight:bold; margin-bottom:15px">← Back to Home</button>
-        <div id="trashList"></div>
     </div>
 </div>
 
@@ -102,7 +116,8 @@
     <div class="modal-content">
         <h3 id="taskModalTitle">New Task</h3>
         <input type="hidden" id="editTaskId">
-        <input type="text" id="tName" placeholder="Task Name (e.g. Building Project)">
+        <input type="hidden" id="editSource">
+        <input type="text" id="tName" placeholder="Task Name">
         <textarea id="tDesc" placeholder="Description"></textarea>
         <button class="btn-main" onclick="saveTask()">Save Task</button>
         <button class="btn-main" style="background:#eee; color:#333" onclick="closeModal()">Cancel</button>
@@ -116,9 +131,9 @@
             <option value="Received">Received Money</option>
             <option value="Paid">Paid Money</option>
         </select>
-        <input type="number" id="eAmount" placeholder="Amount in AED">
+        <input type="number" id="eAmount" placeholder="Amount">
         <input type="date" id="eDate">
-        <textarea id="eNote" placeholder="Note / Reason"></textarea>
+        <textarea id="eNote" placeholder="Note"></textarea>
         <button class="btn-main" style="background:var(--success)" onclick="saveEntry()">Save Entry</button>
         <button class="btn-main" style="background:#eee; color:#333" onclick="closeModal()">Cancel</button>
     </div>
@@ -126,36 +141,48 @@
 
 <script>
     const { jsPDF } = window.jspdf;
-    let tasks = JSON.parse(localStorage.getItem('pro_ledger_tasks')) || [];
-    let trash = JSON.parse(localStorage.getItem('pro_ledger_trash')) || [];
+    let tasks = JSON.parse(localStorage.getItem('plp_tasks')) || [];
+    let history = JSON.parse(localStorage.getItem('plp_history')) || [];
+    let trash = JSON.parse(localStorage.getItem('plp_trash')) || [];
     let activeTaskId = null;
+    let activeSource = 'tasks';
 
-    // --- Core Functions ---
+    function getNow() {
+        const d = new Date();
+        return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
 
     function renderDashboard() {
         const list = document.getElementById('taskList');
         const query = document.getElementById('searchInput').value.toLowerCase();
+        const from = document.getElementById('filterFrom').value;
+        const to = document.getElementById('filterTo').value;
+        
         list.innerHTML = "";
-
         tasks.forEach((task, index) => {
-            if (task.name.toLowerCase().includes(query)) {
+            const taskDate = task.created.split(',')[0]; // Simple date match
+            const matchesFilter = (!from || task.createdIso >= from) && (!to || task.createdIso <= to);
+            
+            if (task.name.toLowerCase().includes(query) && matchesFilter) {
                 const bal = calculateBalance(task.entries);
+                const isZero = bal === 0 && task.entries.length > 0;
                 list.innerHTML += `
                     <div class="task-card">
+                        <span class="timestamp">${task.created}</span>
                         <div class="task-info">
                             <h3>${task.name}</h3>
-                            <div class="task-desc">${task.desc}</div>
+                            ${isZero ? '<span class="badge">DONE</span>' : ''}
                         </div>
+                        <div class="task-desc">${task.desc}</div>
                         <div class="task-meta">
-                            <span class="balance-chip ${bal >= 0 ? 'green' : 'red'}">
-                                ${bal} AED
-                            </span>
+                            <span class="balance-chip ${bal >= 0 ? 'green' : 'red'}">${bal} AED</span>
                             <span style="font-size:11px; color:#999">${task.entries.length} Entries</span>
                         </div>
                         <div class="action-btns">
-                            <button class="btn-sm btn-view" onclick="viewTask(${index})">View Statement</button>
-                            <button class="btn-sm btn-edit" onclick="editTask(${index})">Edit</button>
-                            <button class="btn-sm btn-del" onclick="deleteTask(${index})">Delete</button>
+                            <button class="btn-sm btn-view" onclick="viewTask(${index}, 'tasks')">View</button>
+                            <button class="btn-sm btn-edit" onclick="editTask(${index}, 'tasks')">Edit</button>
+                            <button class="btn-sm btn-done" onclick="completeTask(${index})">Finish</button>
+                            <button class="btn-sm btn-del" onclick="deleteTask(${index}, 'tasks')">Delete</button>
                         </div>
                     </div>`;
             }
@@ -163,197 +190,197 @@
     }
 
     function calculateBalance(entries) {
-        return entries.reduce((acc, curr) => {
-            return acc + (curr.type === "Received" ? 1 : -1) * parseFloat(curr.amount);
-        }, 0);
-    }
-
-    // --- Task Logic ---
-
-    function openTaskModal() {
-        document.getElementById('taskModalTitle').innerText = "New Task";
-        document.getElementById('editTaskId').value = "";
-        document.getElementById('tName').value = "";
-        document.getElementById('tDesc').value = "";
-        document.getElementById('taskModal').style.display = 'flex';
+        return entries.reduce((acc, curr) => acc + (curr.type === "Received" ? 1 : -1) * parseFloat(curr.amount), 0);
     }
 
     function saveTask() {
         const name = document.getElementById('tName').value.trim();
         const desc = document.getElementById('tDesc').value.trim();
         const editId = document.getElementById('editTaskId').value;
-
-        if (!name) return alert("Task Name is required");
-
+        const source = document.getElementById('editSource').value;
+        if (!name) return alert("Name required");
+        
         if (editId !== "") {
-            tasks[editId].name = name;
-            tasks[editId].desc = desc;
+            let targetArr = (source === 'history') ? history : tasks;
+            targetArr[editId].name = name;
+            targetArr[editId].desc = desc;
         } else {
-            tasks.push({ name, desc, entries: [] });
+            const now = new Date();
+            tasks.push({ 
+                name, desc, entries: [], 
+                created: getNow(),
+                createdIso: now.toISOString().split('T')[0]
+            });
         }
-
         saveToLocalStorage();
         closeModal();
-        renderDashboard();
+        source === 'history' ? showHistory() : renderDashboard();
     }
 
-    function editTask(index) {
-        openTaskModal();
-        document.getElementById('taskModalTitle').innerText = "Edit Task";
-        document.getElementById('editTaskId').value = index;
-        document.getElementById('tName').value = tasks[index].name;
-        document.getElementById('tDesc').value = tasks[index].desc;
-    }
-
-    function deleteTask(index) {
-        if(confirm("Move to trash?")) {
-            trash.push(tasks[index]);
+    function completeTask(index) {
+        if(confirm("Mark as Completed?")) {
+            tasks[index].completedAt = getNow();
+            history.push(tasks[index]);
             tasks.splice(index, 1);
             saveToLocalStorage();
             renderDashboard();
         }
     }
 
-    // --- Entry Logic ---
-
-    function viewTask(index) {
-        activeTaskId = index;
-        const task = tasks[index];
+    function showHistory() {
         document.getElementById('dashboardSection').style.display = 'none';
-        document.getElementById('statementSection').style.display = 'block';
-        document.getElementById('stTaskName').innerText = task.name;
-        document.getElementById('stTaskDesc').innerText = task.desc;
-        
-        renderEntries();
-    }
-
-    function renderEntries() {
-        const body = document.getElementById('stBody');
-        const task = tasks[activeTaskId];
-        body.innerHTML = "";
-        
-        task.entries.forEach(e => {
-            body.innerHTML += `
-                <tr>
-                    <td>${e.date}</td>
-                    <td class="${e.type === 'Paid' ? 'red' : 'green'}" style="background:transparent; font-weight:bold">${e.type}</td>
-                    <td>${e.amount} AED <br><small style="color:#666">${e.note}</small></td>
-                </tr>`;
+        document.getElementById('historySection').style.display = 'block';
+        const list = document.getElementById('historyList');
+        const query = document.getElementById('searchHistory').value.toLowerCase();
+        list.innerHTML = "";
+        history.forEach((item, index) => {
+            if(item.name.toLowerCase().includes(query)) {
+                list.innerHTML += `
+                <div class="task-card" style="border-left: 4px solid var(--success)">
+                    <span class="timestamp">Ended: ${item.completedAt}</span>
+                    <h3>${item.name}</h3>
+                    <div class="action-btns">
+                        <button class="btn-sm btn-view" onclick="viewTask(${index}, 'history')">Statement</button>
+                        <button class="btn-sm btn-edit" onclick="editTask(${index}, 'history')">Edit</button>
+                        <button class="btn-sm btn-view" style="background:#e0e7ff" onclick="restoreFromHistory(${index})">Restore</button>
+                        <button class="btn-sm btn-del" onclick="deleteTask(${index}, 'history')">Delete</button>
+                    </div>
+                </div>`;
+            }
         });
-
-        const bal = calculateBalance(task.entries);
-        const balEl = document.getElementById('stFinalBalance');
-        balEl.innerText = `Total Balance: ${bal} AED`;
-        balEl.className = `balance-chip ${bal >= 0 ? 'green' : 'red'}`;
     }
 
-    function openEntryModal() {
-        document.getElementById('eAmount').value = "";
-        document.getElementById('eNote').value = "";
-        document.getElementById('eDate').value = new Date().toISOString().split('T')[0];
-        document.getElementById('entryModal').style.display = 'flex';
+    function deleteTask(index, source) {
+        if(confirm("Move to Trash?")) {
+            let targetArr = (source === 'history') ? history : tasks;
+            targetArr[index].deletedAt = getNow();
+            trash.push(targetArr[index]);
+            targetArr.splice(index, 1);
+            saveToLocalStorage();
+            source === 'history' ? showHistory() : renderDashboard();
+        }
     }
-
-    function saveEntry() {
-        const type = document.getElementById('eType').value;
-        const amount = document.getElementById('eAmount').value;
-        const date = document.getElementById('eDate').value;
-        const note = document.getElementById('eNote').value || "-";
-
-        if (!amount || !date) return alert("Fill amount and date");
-
-        tasks[activeTaskId].entries.push({ type, amount, date, note });
-        saveToLocalStorage();
-        closeModal();
-        renderEntries();
-    }
-
-    // --- PDF & WhatsApp ---
-
-    function generatePDFBlob() {
-        const doc = new jsPDF();
-        const task = tasks[activeTaskId];
-        const bal = calculateBalance(task.entries);
-
-        doc.setFontSize(18);
-        doc.text("Task Statement", 14, 20);
-        doc.setFontSize(12);
-        doc.text(`Task: ${task.name}`, 14, 30);
-        doc.text(`Description: ${task.desc}`, 14, 37);
-        doc.text(`Final Balance: ${bal} AED`, 14, 44);
-
-        const rows = task.entries.map(e => [e.date, e.type, `${e.amount} AED`, e.note]);
-        doc.autoTable({
-            head: [['Date', 'Type', 'Amount', 'Note']],
-            body: rows,
-            startY: 50,
-        });
-
-        return doc;
-    }
-
-    function downloadPDF() {
-        const doc = generatePDFBlob();
-        doc.save(`${tasks[activeTaskId].name}_Statement.pdf`);
-    }
-
-    function shareWhatsApp() {
-        const task = tasks[activeTaskId];
-        const bal = calculateBalance(task.entries);
-        let text = `*Statement: ${task.name}*\nBalance: ${bal} AED\n\n`;
-        task.entries.forEach(e => {
-            text += `📅 ${e.date} | ${e.type === 'Paid' ? '🔴' : '🟢'} ${e.amount} AED\nNote: ${e.note}\n\n`;
-        });
-        
-        const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-        window.open(url, '_blank');
-    }
-
-    // --- Trash & Restore ---
 
     function showTrash() {
         document.getElementById('dashboardSection').style.display = 'none';
         document.getElementById('trashSection').style.display = 'block';
         const list = document.getElementById('trashList');
-        list.innerHTML = trash.length === 0 ? "<p style='text-align:center'>Trash is empty</p>" : "";
-
+        const query = document.getElementById('searchTrash').value.toLowerCase();
+        list.innerHTML = "";
         trash.forEach((item, index) => {
-            list.innerHTML += `
+            if(item.name.toLowerCase().includes(query)) {
+                list.innerHTML += `
                 <div class="task-card">
+                    <span class="timestamp">Deleted: ${item.deletedAt}</span>
                     <h3>${item.name}</h3>
-                    <button class="btn-main" style="background:var(--success)" onclick="restoreTask(${index})">Restore</button>
+                    <button class="btn-main" style="background:var(--success); margin-top:10px" onclick="restoreTask(${index})">Restore</button>
                 </div>`;
+            }
         });
     }
 
-    function restoreTask(index) {
-        tasks.push(trash[index]);
-        trash.splice(index, 1);
-        saveToLocalStorage();
-        showTrash();
+    function viewTask(index, source) {
+        activeTaskId = index; activeSource = source;
+        const task = (source === 'history') ? history[index] : tasks[index];
+        document.getElementById('dashboardSection').style.display = 'none';
+        document.getElementById('historySection').style.display = 'none';
+        document.getElementById('statementSection').style.display = 'block';
+        document.getElementById('stTaskName').innerText = task.name;
+        document.getElementById('stTaskDesc').innerText = task.desc;
+        document.getElementById('addEntryBtn').style.display = (source === 'history') ? 'none' : 'block';
+        renderEntries();
     }
 
-    // --- Helpers ---
+    function renderEntries() {
+        const body = document.getElementById('stBody');
+        const task = (activeSource === 'history') ? history[activeTaskId] : tasks[activeTaskId];
+        body.innerHTML = "";
+        task.entries.forEach(e => {
+            body.innerHTML += `<tr><td>${e.date}</td><td class="${e.type === 'Paid' ? 'red' : 'green'}" style="font-weight:bold">${e.type}</td><td>${e.amount} AED<br><small>${e.note}</small></td></tr>`;
+        });
+        const bal = calculateBalance(task.entries);
+        const balEl = document.getElementById('stFinalBalance');
+        balEl.innerText = `Balance: ${bal} AED`;
+        balEl.className = `balance-chip ${bal >= 0 ? 'green' : 'red'}`;
+    }
+
+    function clearFilters() {
+        document.getElementById('filterFrom').value = "";
+        document.getElementById('filterTo').value = "";
+        renderDashboard();
+    }
+
+    function saveEntry() {
+        const amount = document.getElementById('eAmount').value;
+        const date = document.getElementById('eDate').value;
+        if (!amount || !date) return alert("Fill data");
+        tasks[activeTaskId].entries.push({ 
+            type: document.getElementById('eType').value, 
+            amount, date, 
+            note: document.getElementById('eNote').value || "-" 
+        });
+        saveToLocalStorage(); closeModal(); renderEntries();
+    }
+
+    function restoreTask(index) {
+        tasks.push(trash[index]); trash.splice(index, 1);
+        saveToLocalStorage(); showTrash();
+    }
+
+    function restoreFromHistory(index) {
+        tasks.push(history[index]); history.splice(index, 1);
+        saveToLocalStorage(); showHistory();
+    }
 
     function saveToLocalStorage() {
-        localStorage.setItem('pro_ledger_tasks', JSON.stringify(tasks));
-        localStorage.setItem('pro_ledger_trash', JSON.stringify(trash));
+        localStorage.setItem('plp_tasks', JSON.stringify(tasks));
+        localStorage.setItem('plp_history', JSON.stringify(history));
+        localStorage.setItem('plp_trash', JSON.stringify(trash));
     }
 
-    function closeModal() {
-        document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+    function editTask(index, source) {
+        let item = (source === 'history') ? history[index] : tasks[index];
+        document.getElementById('taskModalTitle').innerText = "Edit Task";
+        document.getElementById('editTaskId').value = index;
+        document.getElementById('editSource').value = source;
+        document.getElementById('tName').value = item.name;
+        document.getElementById('tDesc').value = item.desc;
+        document.getElementById('taskModal').style.display = 'flex';
     }
 
-    function closeStatement() {
-        document.getElementById('statementSection').style.display = 'none';
-        document.getElementById('dashboardSection').style.display = 'block';
-        renderDashboard();
+    function openTaskModal() {
+        document.getElementById('taskModalTitle').innerText = "New Task";
+        document.getElementById('editTaskId').value = "";
+        document.getElementById('editSource').value = "tasks";
+        document.getElementById('tName').value = "";
+        document.getElementById('tDesc').value = "";
+        document.getElementById('taskModal').style.display = 'flex';
     }
 
-    function closeTrash() {
-        document.getElementById('trashSection').style.display = 'none';
-        document.getElementById('dashboardSection').style.display = 'block';
-        renderDashboard();
+    function openEntryModal() {
+        document.getElementById('eDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('entryModal').style.display = 'flex';
+    }
+
+    function closeModal() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
+    function closeStatement() { document.getElementById('statementSection').style.display = 'none'; closeHistory(); }
+    function closeHistory() { document.getElementById('historySection').style.display = 'none'; document.getElementById('dashboardSection').style.display = 'block'; renderDashboard(); }
+    function closeTrash() { document.getElementById('trashSection').style.display = 'none'; document.getElementById('dashboardSection').style.display = 'block'; renderDashboard(); }
+
+    function downloadPDF() {
+        const doc = new jsPDF();
+        const task = (activeSource === 'history') ? history[activeTaskId] : tasks[activeTaskId];
+        doc.text(`Statement: ${task.name}`, 14, 20);
+        const rows = task.entries.map(e => [e.date, e.type, `${e.amount} AED`, e.note]);
+        doc.autoTable({ head: [['Date', 'Type', 'Amount', 'Note']], body: rows, startY: 30 });
+        doc.save(`${task.name}.pdf`);
+    }
+
+    function shareWhatsApp() {
+        const task = (activeSource === 'history') ? history[activeTaskId] : tasks[activeTaskId];
+        let text = `*Statement: ${task.name}*\nBalance: ${calculateBalance(task.entries)} AED\n\n`;
+        task.entries.forEach(e => { text += `📅 ${e.date} | ${e.type === 'Paid' ? '🔴' : '🟢'} ${e.amount} AED\n`; });
+        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
     }
 
     renderDashboard();
