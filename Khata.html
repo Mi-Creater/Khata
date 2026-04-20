@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#075E54">
+  <title>Khata · Credit Mate</title>
+  <!-- html2pdf library for PDF generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: #f1f5f9;
+      font-family: system-ui, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+      padding: 14px;
+      min-height: 100vh;
+    }
+
+    /* main switch container */
+    .app-wrapper {
+      max-width: 550px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 2rem;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+      overflow: hidden;
+      transition: all 0.2s;
+    }
+
+    /* tab bar */
+    .tab-bar {
+      display: flex;
+      background: #ffffff;
+      border-bottom: 1px solid #e9eef3;
+      padding: 6px 12px 0 12px;
+      gap: 12px;
+    }
+    .tab-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      padding: 14px 0 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #7e8b98;
+      cursor: pointer;
+      transition: 0.2s;
+      border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active {
+      color: #075E54;
+      border-bottom-color: #075E54;
+    }
+    .tab-pane {
+      display: none;
+      animation: fadeIn 0.2s ease;
+    }
+    .tab-pane.active-pane {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+
+    /* shared styles for both apps */
+    .pane-content {
+      padding: 16px 14px 20px;
+    }
+
+    /* ---- Room Khata styles (WhatsApp + PDF ready) ---- */
+    .khata-header {
+      background: #075E54;
+      color: white;
+      border-radius: 20px;
+      padding: 12px 16px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .khata-header h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .total-badge {
+      background: rgba(255,255,255,0.2);
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 40px;
+      font-size: 0.8rem;
+    }
+    .form-card {
+      background: #f8fafc;
+      border-radius: 20px;
+      padding: 12px;
+      margin-bottom: 20px;
+    }
+    .row-flex {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .input-group {
+      flex: 1;
+      min-width: 100px;
+    }
+    .input-group label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #2c3e44;
+      display: block;
+      margin-bottom: 3px;
+    }
+    input, button {
+      font-size: 0.85rem;
+      border-radius: 14px;
+      border: 1px solid #e2e8f0;
+      padding: 8px 10px;
+      width: 100%;
+      background: white;
+    }
+    button {
+      background: #075E54;
+      color: white;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: 0.1s;
+    }
+    button:active { transform: scale(0.97); }
+    .btn-secondary {
+      background: #eef2ff;
+      color: #1e3a8a;
+    }
+    .expense-item {
+      background: white;
+      border-radius: 16px;
+      margin-bottom: 8px;
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid #edf2f7;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+    .expense-info .name {
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+    .expense-info .meta {
+      font-size: 0.65rem;
+      color: #64748b;
+      margin-top: 4px;
+    }
+    .expense-actions {
+      display: flex;
+      gap: 6px;
+    }
+    .expense-actions button {
+      padding: 5px 10px;
+      font-size: 0.7rem;
+      border-radius: 30px;
+      background: #f1f5f9;
+      color: #1f2937;
+    }
+    .share-buttons {
+      display: flex;
+      gap: 12px;
+      margin: 20px 0 16px;
+    }
+    .share-buttons button {
+      flex: 1;
+      background: white;
+      border: 1px solid #cbd5e1;
+      color: #075E54;
+    }
+    .whatsapp-btn {
+      background: #25D366 !important;
+      color: white !important;
+      border: none !important;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 32px 16px;
+      background: #f9f9fc;
+      border-radius: 24px;
+      color: #94a3b8;
+    }
+
+    /* Credit Mate Styles */
+    .credit-header {
+      background: #1e293b;
+      color: white;
+      border-radius: 20px;
+      padding: 12px 16px;
+      margin-bottom: 18px;
+    }
+    .search-bar {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #e2e8f0;
+      border-radius: 30px;
+      margin-bottom: 14px;
+      font-size: 0.85rem;
+    }
+    .customer-row {
+      background: white;
+      border-radius: 14px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid #edf2f7;
+    }
+    .cust-info .name {
+      font-weight: 600;
+    }
+    .cust-balance {
+      font-size: 0.75rem;
+      margin-top: 4px;
+    }
+    .positive { color: #16a34a; }
+    .negative { color: #dc2626; }
+    .view-btn {
+      background: #eef2ff;
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .statement-view {
+      background: #f8fafc;
+      border-radius: 20px;
+      padding: 12px;
+    }
+    .back-bar {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .transaction-item {
+      background: white;
+      border-radius: 14px;
+      padding: 8px 12px;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    .modal-card {
+      background: white;
+      width: 100%;
+      max-width: 320px;
+      border-radius: 28px;
+      padding: 20px;
+    }
+    .modal-card select, .modal-card textarea {
+      margin-bottom: 12px;
+      width: 100%;
+      padding: 10px;
+      border-radius: 16px;
+      border: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+<div class="app-wrapper">
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="khata">📒 Room Khata</button>
+    <button class="tab-btn" data-tab="credit">💳 Credit Mate</button>
+  </div>
+
+  <!-- ========================= ROOM KHATA PANE ========================= -->
+  <div id="khataPane" class="tab-pane active-pane">
+    <div class="pane-content">
+      <div class="khata-header">
+        <h3>📋 Room Khata</h3>
+        <div class="total-badge">💰 Total: <span id="khataTotal">0</span> AED</div>
+      </div>
+
+      <!-- Add / Edit Form -->
+      <div class="form-card">
+        <div class="row-flex">
+          <div class="input-group" style="flex:2">
+            <label>Item / Product</label>
+            <input type="text" id="itemName" placeholder="e.g., Fruit, Water, Grocery">
+          </div>
+          <div class="input-group">
+            <label>AED</label>
+            <input type="number" id="itemAmount" placeholder="Amount" step="1">
+          </div>
+          <div class="input-group">
+            <label>Date</label>
+            <input type="date" id="itemDate">
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 4px;">
+          <button id="addItemBtn">+ Add Entry</button>
+          <button id="cancelEditBtn" style="display: none; background:#94a3b8;">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Expense List -->
+      <div style="font-weight: 600; margin: 8px 0 6px;">📌 Recent entries</div>
+      <div id="expenseListContainer"></div>
+
+      <!-- Share actions (PDF + WhatsApp) -->
+      <div class="share-buttons">
+        <button id="copyTextBtn">📋 Copy Text</button>
+        <button id="pdfShareBtn" class="whatsapp-btn">📄 Send as PDF</button>
+      </div>
+      <div style="font-size: 11px; color: #6c757d; text-align: center;">PDF includes all items & total • share on WhatsApp</div>
+    </div>
+  </div>
+
+  <!-- ========================= CREDIT MATE PANE ========================= -->
+  <div id="creditPane" class="tab-pane">
+    <div class="pane-content">
+      <div class="credit-header">
+        <h3>💼 Credit Mate</h3>
+        <p style="font-size: 12px; opacity:0.8;">Track money received/paid</p>
+      </div>
+
+      <!-- Dashboard View (customers list) -->
+      <div id="creditDashboard">
+        <input type="text" id="customerSearch" class="search-bar" placeholder="🔍 Search customer...">
+        <button id="newCustomerBtn" style="background: #1e293b; margin-bottom: 14px;">+ New Customer</button>
+        <div id="customersList"></div>
+      </div>
+
+      <!-- Statement View (hidden by default) -->
+      <div id="statementView" style="display: none;">
+        <div class="back-bar">
+          <button id="backToDashboardBtn" style="background: none; border: none; color:#1e293b; font-weight: bold; font-size: 1rem;">← Back</button>
+          <button id="addTransactionBtn" style="background: #1e293b; padding: 6px 12px; border-radius: 30px;">+ Add Entry</button>
+        </div>
+        <div class="statement-view">
+          <h4 id="statementCustName" style="margin-bottom: 6px;">Customer Name</h4>
+          <div id="statementBalance" style="font-weight: bold; margin-bottom: 16px;">Balance: 0 AED</div>
+          <div id="transactionsList"></div>
+          <button id="copyCreditStatementBtn" style="margin-top: 18px; background:#25D366; color:white;">📋 Copy Statement (WhatsApp)</button>
+          <button id="pdfCreditBtn" style="margin-top: 10px; background:#075E54;">📄 Export Statement as PDF</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for Credit Mate (add / edit customer / transaction) -->
+<div id="creditModal" class="modal">
+  <div class="modal-card">
+    <h3 id="modalTitle">New Customer</h3>
+    <div id="modalNameDiv">
+      <input type="text" id="modalCustName" placeholder="Customer name">
+    </div>
+    <select id="modalType">
+      <option value="Received">Received (Customer gave)</option>
+      <option value="Paid">Paid (You gave back)</option>
+    </select>
+    <input type="number" id="modalAmount" placeholder="Amount (AED)">
+    <input type="date" id="modalDate">
+    <textarea id="modalNote" rows="2" placeholder="Reason / note"></textarea>
+    <button id="modalSaveBtn" style="background:#16a34a;">Save</button>
+    <button id="modalCloseBtn" style="background:#e2e8f0; color:#1e293b; margin-top: 8px;">Cancel</button>
+  </div>
+</div>
+
+<script>
+  // ----------------------------- ROOM KHATA LOGIC (with PDF) -----------------------------
+  let khataItems = [];  // { id, name, amount, date }
+  let editId = null;
+
+  function loadKhata() {
+    const saved = localStorage.getItem("room_khata_data");
+    if(saved) {
+      try { khataItems = JSON.parse(saved); } catch(e){ khataItems = []; }
+    }
+    renderKhata();
+  }
+  function saveKhata() { localStorage.setItem("room_khata_data", JSON.stringify(khataItems)); renderKhata(); }
+
+  function renderKhata() {
+    const container = document.getElementById("expenseListContainer");
+    const totalSpan = document.getElementById("khataTotal");
+    let total = khataItems.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
+    totalSpan.innerText = total;
+    if(khataItems.length === 0) {
+      container.innerHTML = `<div class="empty-state">✨ No expenses. Add your first item.</div>`;
+      return;
+    }
+    container.innerHTML = "";
+    khataItems.slice().reverse().forEach(item => {
+      const div = document.createElement("div");
+      div.className = "expense-item";
+      let displayDate = item.date.split('-').reverse().join('-'); // to DD-MM-YYYY
+      div.innerHTML = `
+        <div class="expense-info">
+          <div class="name">${escapeHtml(item.name)}</div>
+          <div class="meta">${item.amount} AED • ${displayDate}</div>
+        </div>
+        <div class="expense-actions">
+          <button class="edit-khata" data-id="${item.id}">Edit</button>
+          <button class="delete-khata" data-id="${item.id}">Del</button>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+    document.querySelectorAll(".edit-khata").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const id = btn.getAttribute("data-id");
+        const item = khataItems.find(i => i.id == id);
+        if(item) {
+          document.getElementById("itemName").value = item.name;
+          document.getElementById("itemAmount").value = item.amount;
+          document.getElementById("itemDate").value = item.date;
+          editId = id;
+          document.getElementById("addItemBtn").innerText = "✏️ Update";
+          document.getElementById("cancelEditBtn").style.display = "block";
+        }
+      });
+    });
+    document.querySelectorAll(".delete-khata").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const id = btn.getAttribute("data-id");
+        if(confirm("Move to trash?")) {
+          khataItems = khataItems.filter(i => i.id != id);
+          saveKhata();
+          if(editId == id) cancelEditKhata();
+        }
+      });
+    });
+  }
+
+  function cancelEditKhata() {
+    editId = null;
+    document.getElementById("itemName").value = "";
+    document.getElementById("itemAmount").value = "";
+    document.getElementById("itemDate").value = new Date().toISOString().split('T')[0];
+    document.getElementById("addItemBtn").innerText = "+ Add Entry";
+    document.getElementById("cancelEditBtn").style.display = "none";
+  }
+
+  function addOrUpdateKhata() {
+    let name = document.getElementById("itemName").value.trim();
+    let amount = parseFloat(document.getElementById("itemAmount").value);
+    let date = document.getElementById("itemDate").value;
+    if(!name || isNaN(amount) || amount <= 0) { alert("Please enter valid item name & amount"); return; }
+    if(!date) date = new Date().toISOString().split('T')[0];
+    if(editId) {
+      const index = khataItems.findIndex(i => i.id == editId);
+      if(index !== -1) {
+        khataItems[index] = { ...khataItems[index], name, amount, date };
+      }
+      cancelEditKhata();
+    } else {
+      const newId = Date.now() + "_" + Math.random();
+      khataItems.push({ id: newId, name, amount, date });
+    }
+    saveKhata();
+  }
+
+  // generate formatted text (like "Fruite - 10 AED - 20/04/2026")
+  function getKhataTextReport() {
+    if(khataItems.length === 0) return "📭 No expenses recorded.";
+    let lines = [];
+    khataItems.forEach(item => {
+      let formattedDate = item.date.split('-').reverse().join('/');
+      lines.push(`${item.name} - ${item.amount} AED - ${formattedDate}`);
+    });
+    const total = khataItems.reduce((s,i)=> s + (Number(i.amount)||0),0);
+    lines.push(`\n💰 TOTAL: ${total} AED`);
+    return lines.join("\n");
+  }
+
+  // PDF generation for Khata (clean format)
+  async function generateKhataPDF() {
+    if(khataItems.length === 0) { alert("No items to export as PDF."); return; }
+    const total = khataItems.reduce((s,i)=> s + (Number(i.amount)||0),0);
+    let rowsHtml = "";
+    khataItems.forEach(item => {
+      let formattedDate = item.date.split('-').reverse().join('/');
+      rowsHtml += `<tr style="border-bottom:1px solid #e2e8f0;">
+        <td style="padding:8px; font-size:14px;">${escapeHtml(item.name)}</td>
+        <td style="padding:8px; text-align:right;">${item.amount} AED</td>
+        <td style="padding:8px; text-align:right;">${formattedDate}</td>
+      </tr>`;
+    });
+    const pdfContent = `
+      <div style="font-family: system-ui, sans-serif; padding: 20px; max-width: 500px;">
+        <h2 style="color:#075E54;">📒 Room Khata Statement</h2>
+        <hr style="margin:12px 0;">
+        <table style="width:100%; border-collapse:collapse;">
+          <thead><tr style="background:#f1f5f9;"><th style="padding:8px; text-align:left;">Item</th><th style="padding:8px;">Amount</th><th style="padding:8px;">Date</th></tr></thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+        <hr>
+        <p style="font-size:16px; font-weight:bold;">Total: ${total} AED</p>
+        <p style="margin-top: 20px; font-size:12px; color:#475569;">Generated on ${new Date().toLocaleString()}</p>
+      </div>
+    `;
+    const opt = { margin: [0.5,0.5,0.5,0.5], filename: `RoomKhata_${new Date().toISOString().slice(0,10)}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } };
+    html2pdf().set(opt).from(pdfContent).save();
+  }
+
+  function copyKhataText() {
+    const report = getKhataTextReport();
+    navigator.clipboard.writeText(report).then(()=> alert("✅ Copied! Paste anywhere.")).catch(()=> alert("Manual copy failed"));
+  }
+
+  // ----------------------------- CREDIT MATE LOGIC (with PDF & WhatsApp text) -----------------------------
+  let creditData = {};     // { customerName: [ {type, amount, date, note} ] }
+  let currentCustomer = null;
+
+  function loadCredit() {
+    const saved = localStorage.getItem("credit_mate_data");
+    if(saved) { try { creditData = JSON.parse(saved); } catch(e){ creditData = {}; } }
+    renderCustomerList();
+  }
+  function saveCredit() { localStorage.setItem("credit_mate_data", JSON.stringify(creditData)); }
+
+  function calculateBalance(cust) {
+    let bal = 0;
+    (creditData[cust] || []).forEach(t => {
+      bal += (t.type === "Received" ? 1 : -1) * (Number(t.amount) || 0);
+    });
+    return bal;
+  }
+
+  function renderCustomerList() {
+    const container = document.getElementById("customersList");
+    const searchTerm = document.getElementById("customerSearch").value.toLowerCase();
+    let customers = Object.keys(creditData).filter(c => c.toLowerCase().includes(searchTerm));
+    if(customers.length === 0) { container.innerHTML = `<div class="empty-state">👥 No customers. Tap + New Customer</div>`; return; }
+    container.innerHTML = "";
+    customers.forEach(cust => {
+      let bal = calculateBalance(cust);
+      let balClass = bal >= 0 ? "positive" : "negative";
+      container.innerHTML += `
+        <div class="customer-row">
+          <div class="cust-info">
+            <div class="name">${escapeHtml(cust)}</div>
+            <div class="cust-balance ${balClass}">Balance: ${bal} AED</div>
+          </div>
+          <button class="view-btn" data-cust="${escapeHtml(cust)}">View</button>
+        </div>
+      `;
+    });
+    document.querySelectorAll(".view-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        currentCustomer = btn.getAttribute("data-cust");
+        showStatementView();
+      });
+    });
+  }
+
+  function showStatementView() {
+    document.getElementById("creditDashboard").style.display = "none";
+    document.getElementById("statementView").style.display = "block";
+    document.getElementById("statementCustName").innerHTML = `<strong>${escapeHtml(currentCustomer)}</strong>`;
+    renderTransactions();
+  }
+
+  function renderTransactions() {
+    const container = document.getElementById("transactionsList");
+    const txns = creditData[currentCustomer] || [];
+    const bal = calculateBalance(currentCustomer);
+    document.getElementById("statementBalance").innerHTML = `Balance: ${bal} AED`;
+    if(txns.length === 0) { container.innerHTML = `<div class="empty-state">No transactions yet.</div>`; return; }
+    container.innerHTML = "";
+    txns.slice().reverse().forEach(t => {
+      const sign = t.type === "Received" ? "+" : "-";
+      const color = t.type === "Received" ? "#16a34a" : "#dc2626";
+      const formattedDate = t.date.split('-').reverse().join('/');
+      container.innerHTML += `
+        <div class="transaction-item" style="border-left: 4px solid ${color};">
+          <div><strong>${t.type}</strong><br><span style="font-size:11px;">${formattedDate}</span><br><span style="font-size:10px;">📝 ${t.note || "-"}</span></div>
+          <div style="font-weight:bold; color:${color};">${sign} ${t.amount} AED</div>
+        </div>
+      `;
+    });
+  }
+
+  function getCreditTextReport() {
+    if(!currentCustomer) return "";
+    const txns = creditData[currentCustomer] || [];
+    if(txns.length === 0) return `No transactions for ${currentCustomer}`;
+    let lines = [`📋 CREDIT MATE: ${currentCustomer}`, "------------------------"];
+    txns.forEach(t => {
+      let formattedDate = t.date.split('-').reverse().join('/');
+      lines.push(`${formattedDate} | ${t.type} | ${t.amount} AED | Note: ${t.note || "-"}`);
+    });
+    lines.push("------------------------");
+    lines.push(`💰 Final Balance: ${calculateBalance(currentCustomer)} AED`);
+    return lines.join("\n");
+  }
+
+  async function generateCreditPDF() {
+    if(!currentCustomer || !creditData[currentCustomer]?.length) { alert("No transactions to export."); return; }
+    const txns = creditData[currentCustomer];
+    let rows = "";
+    txns.forEach(t => {
+      let formattedDate = t.date.split('-').reverse().join('/');
+      rows += `<tr><td style="padding:6px;">${formattedDate}</td><td>${t.type}</td><td>${t.amount} AED</td><td>${escapeHtml(t.note || "-")}</td></tr>`;
+    });
+    const bal = calculateBalance(currentCustomer);
+    const pdfHtml = `
+      <div style="padding:20px; font-family:sans-serif;">
+        <h2 style="color:#1e293b;">💳 Credit Mate Statement</h2>
+        <h3>${escapeHtml(currentCustomer)}</h3>
+        <table style="width:100%; border-collapse:collapse; margin-top:15px;">
+          <thead><tr style="background:#f1f5f9;"><th>Date</th><th>Type</th><th>Amount</th><th>Note</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <hr><p><strong>Total Balance: ${bal} AED</strong></p>
+        <p style="font-size:11px;">Generated on ${new Date().toLocaleString()}</p>
+      </div>
+    `;
+    const opt = { margin: 0.5, filename: `CreditMate_${currentCustomer}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'a4' } };
+    html2pdf().set(opt).from(pdfHtml).save();
+  }
+
+  function copyCreditStatement() {
+    const report = getCreditTextReport();
+    navigator.clipboard.writeText(report).then(()=> alert("Statement copied! You can share via WhatsApp."));
+  }
+
+  // modal handlers
+  let modalCallback = null;
+  function openCreditModal(isNewCustomer = true, existingCustomer = null) {
+    const modal = document.getElementById("creditModal");
+    document.getElementById("modalTitle").innerText = isNewCustomer ? "➕ New Customer & First Entry" : "➕ Add Transaction";
+    document.getElementById("modalNameDiv").style.display = isNewCustomer ? "block" : "none";
+    document.getElementById("modalCustName").value = existingCustomer || "";
+    document.getElementById("modalType").value = "Received";
+    document.getElementById("modalAmount").value = "";
+    document.getElementById("modalDate").value = new Date().toISOString().split('T')[0];
+    document.getElementById("modalNote").value = "";
+    modal.style.display = "flex";
+    modalCallback = () => {
+      let custName = isNewCustomer ? document.getElementById("modalCustName").value.trim() : currentCustomer;
+      if(!custName) { alert("Customer name required"); return false; }
+      let type = document.getElementById("modalType").value;
+      let amount = parseFloat(document.getElementById("modalAmount").value);
+      let date = document.getElementById("modalDate").value;
+      let note = document.getElementById("modalNote").value || "-";
+      if(isNaN(amount) || amount <= 0) { alert("Valid amount > 0"); return false; }
+      if(!creditData[custName]) creditData[custName] = [];
+      creditData[custName].push({ type, amount, date, note });
+      saveCredit();
+      if(!isNewCustomer) renderTransactions();
+      else { renderCustomerList(); }
+      if(isNewCustomer && document.getElementById("creditDashboard").style.display !== "none") renderCustomerList();
+      return true;
+    };
+  }
+
+  // event binding
+  function bindEvents() {
+    document.getElementById("addItemBtn").addEventListener("click", addOrUpdateKhata);
+    document.getElementById("cancelEditBtn").addEventListener("click", cancelEditKhata);
+    document.getElementById("copyTextBtn").addEventListener("click", copyKhataText);
+    document.getElementById("pdfShareBtn").addEventListener("click", generateKhataPDF);
+    document.getElementById("newCustomerBtn").addEventListener("click", () => openCreditModal(true));
+    document.getElementById("addTransactionBtn").addEventListener("click", () => openCreditModal(false));
+    document.getElementById("backToDashboardBtn").addEventListener("click", () => {
+      document.getElementById("creditDashboard").style.display = "block";
+      document.getElementById("statementView").style.display = "none";
+      renderCustomerList();
+    });
+    document.getElementById("copyCreditStatementBtn").addEventListener("click", copyCreditStatement);
+    document.getElementById("pdfCreditBtn").addEventListener("click", generateCreditPDF);
+    document.getElementById("modalSaveBtn").addEventListener("click", () => {
+      if(modalCallback && modalCallback()) {
+        document.getElementById("creditModal").style.display = "none";
+        if(currentCustomer && document.getElementById("statementView").style.display === "block") renderTransactions();
+      }
+    });
+    document.getElementById("modalCloseBtn").addEventListener("click", () => document.getElementById("creditModal").style.display = "none");
+    document.getElementById("customerSearch").addEventListener("input", () => renderCustomerList());
+  }
+
+  function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+
+  // set default date in khata
+  document.addEventListener("DOMContentLoaded", () => {
+    const today = new Date().toISOString().split('T')[0];
+    if(document.getElementById("itemDate")) document.getElementById("itemDate").value = today;
+    loadKhata();
+    loadCredit();
+    bindEvents();
+    // tab switching
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        const tabId = btn.getAttribute("data-tab");
+        document.getElementById("khataPane").classList.toggle("active-pane", tabId === "khata");
+        document.getElementById("creditPane").classList.toggle("active-pane", tabId === "credit");
+        if(tabId === "credit") renderCustomerList();
+      });
+    });
+  });
+</script>
+</body>
+</html>
